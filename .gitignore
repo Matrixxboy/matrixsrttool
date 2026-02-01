@@ -1,0 +1,10 @@
+__pycache__
+
+venv
+
+node_modules/
+Server/uploads/
+Server/outputs/
+.env
+
+gitoutputs/

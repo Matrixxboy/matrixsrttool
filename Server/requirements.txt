@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-multipart
+openai-whisper
+ffmpeg-python
+indic-transliteration
+aiofiles
+pydantic-settings
+pyinstaller

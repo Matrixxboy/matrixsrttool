@@ -1,0 +1,119 @@
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
+from fastapi.responses import FileResponse, JSONResponse
+import shutil
+import os
+import uuid
+import logging
+from typing import Dict
+from services.audio import extract_audio
+from services.transcription import transcribe_audio
+from services.subtitle import generate_srt
+
+router = APIRouter()
+
+# Simple in-memory job store
+# Structure: {job_id: {"status": "pending"|"processing"|"completed"|"failed", "message": "", "srt_path": ""}}
+jobs: Dict[str, Dict] = {}
+
+UPLOAD_DIR = "uploads"
+OUTPUT_DIR = "outputs"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+logger = logging.getLogger(__name__)
+
+async def process_transcription(job_id: str, video_path: str, language: str, mode: str):
+    """
+    Background task to handle the full transcription pipeline.
+    """
+    try:
+        jobs[job_id]["status"] = "processing"
+        jobs[job_id]["message"] = "Extracting audio..."
+        
+        # 1. Extract Audio
+        audio_path = os.path.join(UPLOAD_DIR, f"{job_id}.wav")
+        extract_audio(video_path, audio_path)
+        
+        jobs[job_id]["message"] = "Transcribing..."
+        
+        # 2. Transcribe
+        segments = transcribe_audio(audio_path, language, mode)
+        
+        jobs[job_id]["message"] = "Generating subtitles..."
+        
+        # 3. Generate SRT
+        srt_content = generate_srt(segments)
+        srt_filename = f"{job_id}.srt"
+        srt_path = os.path.join(OUTPUT_DIR, srt_filename)
+        
+        with open(srt_path, "w", encoding="utf-8") as f:
+            f.write(srt_content)
+            
+        jobs[job_id]["status"] = "completed"
+        jobs[job_id]["message"] = "Done"
+        jobs[job_id]["srt_path"] = srt_path
+        
+        # Cleanup audio/video temp files (optional - keeping for debug for now)
+        # os.remove(video_path)
+        # os.remove(audio_path)
+        
+    except Exception as e:
+        logger.error(f"Job {job_id} failed: {e}")
+        jobs[job_id]["status"] = "failed"
+        jobs[job_id]["message"] = str(e)
+
+@router.post("/upload")
+async def upload_video(file: UploadFile = File(...)):
+    """
+    Uploads a video file and returns a temporary file ID.
+    """
+    file_id = str(uuid.uuid4())
+    file_extension = os.path.splitext(file.filename)[1]
+    file_path = os.path.join(UPLOAD_DIR, f"{file_id}{file_extension}")
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    return {"file_id": file_id, "file_path": file_path}
+
+@router.post("/transcribe")
+async def start_transcription(
+    background_tasks: BackgroundTasks,
+    file_path: str = Form(...),
+    language: str = Form(...),
+    mode: str = Form(...)
+):
+    """
+    Starts the transcription process in the background.
+    """
+    job_id = str(uuid.uuid4())
+    jobs[job_id] = {
+        "status": "pending",
+        "message": "Queued",
+        "srt_path": None
+    }
+    
+    background_tasks.add_task(process_transcription, job_id, file_path, language, mode)
+    
+    return {"job_id": job_id}
+
+@router.get("/status/{job_id}")
+async def get_status(job_id: str):
+    if job_id not in jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    return jobs[job_id]
+
+@router.get("/download/{job_id}")
+async def download_subtitle(job_id: str):
+    if job_id not in jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    if jobs[job_id]["status"] != "completed":
+        raise HTTPException(status_code=400, detail="Job not completed")
+        
+    return FileResponse(
+        jobs[job_id]["srt_path"], 
+        media_type="application/x-subrip", 
+        filename="subtitles.srt"
+    )
