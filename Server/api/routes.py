@@ -4,6 +4,7 @@ import shutil
 import os
 import uuid
 import logging
+import json
 from typing import Dict
 from services.audio import extract_audio
 from services.transcription import transcribe_audio
@@ -11,16 +12,35 @@ from services.subtitle import generate_srt
 
 router = APIRouter()
 
-# Simple in-memory job store
-# Structure: {job_id: {"status": "pending"|"processing"|"completed"|"failed", "message": "", "srt_path": ""}}
-jobs: Dict[str, Dict] = {}
-
+# Directories
 UPLOAD_DIR = "uploads"
 OUTPUT_DIR = "outputs"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+# Persistence File
+JOBS_FILE = "jobs.json"
+
 logger = logging.getLogger(__name__)
+
+def load_jobs() -> Dict[str, Dict]:
+    if os.path.exists(JOBS_FILE):
+        try:
+            with open(JOBS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Failed to load jobs: {e}")
+    return {}
+
+def save_jobs():
+    try:
+        with open(JOBS_FILE, "w", encoding="utf-8") as f:
+            json.dump(jobs, f, indent=4)
+    except Exception as e:
+        logger.error(f"Failed to save jobs: {e}")
+
+# Load jobs on startup
+jobs: Dict[str, Dict] = load_jobs()
 
 async def process_transcription(job_id: str, video_path: str, language: str, mode: str):
     """
@@ -29,17 +49,20 @@ async def process_transcription(job_id: str, video_path: str, language: str, mod
     try:
         jobs[job_id]["status"] = "processing"
         jobs[job_id]["message"] = "Extracting audio..."
+        save_jobs()
         
         # 1. Extract Audio
         audio_path = os.path.join(UPLOAD_DIR, f"{job_id}.wav")
         extract_audio(video_path, audio_path)
         
         jobs[job_id]["message"] = "Transcribing..."
+        save_jobs()
         
         # 2. Transcribe
         segments = transcribe_audio(audio_path, language, mode)
         
         jobs[job_id]["message"] = "Generating subtitles..."
+        save_jobs()
         
         # 3. Generate SRT
         srt_content = generate_srt(segments)
@@ -52,6 +75,7 @@ async def process_transcription(job_id: str, video_path: str, language: str, mod
         jobs[job_id]["status"] = "completed"
         jobs[job_id]["message"] = "Done"
         jobs[job_id]["srt_path"] = srt_path
+        save_jobs()
         
         # Cleanup audio/video temp files (optional - keeping for debug for now)
         # os.remove(video_path)
@@ -61,6 +85,7 @@ async def process_transcription(job_id: str, video_path: str, language: str, mod
         logger.error(f"Job {job_id} failed: {e}")
         jobs[job_id]["status"] = "failed"
         jobs[job_id]["message"] = str(e)
+        save_jobs()
 
 @router.post("/upload")
 async def upload_video(file: UploadFile = File(...)):
@@ -92,6 +117,7 @@ async def start_transcription(
         "message": "Queued",
         "srt_path": None
     }
+    save_jobs()
     
     background_tasks.add_task(process_transcription, job_id, file_path, language, mode)
     
@@ -99,6 +125,12 @@ async def start_transcription(
 
 @router.get("/status/{job_id}")
 async def get_status(job_id: str):
+    if job_id not in jobs:
+        # Try reloading just in case another worker updated it (though we are single process usually)
+        # global jobs
+        # jobs = load_jobs()
+        pass
+        
     if job_id not in jobs:
         raise HTTPException(status_code=404, detail="Job not found")
     
@@ -111,7 +143,11 @@ async def download_subtitle(job_id: str):
         
     if jobs[job_id]["status"] != "completed":
         raise HTTPException(status_code=400, detail="Job not completed")
-        
+    
+    # Verify file exists
+    if not os.path.exists(jobs[job_id]["srt_path"]):
+         raise HTTPException(status_code=404, detail="SRT file missing from disk")
+
     return FileResponse(
         jobs[job_id]["srt_path"], 
         media_type="application/x-subrip", 

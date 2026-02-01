@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Upload, FileVideo, CheckCircle, AlertCircle } from "lucide-react"
+import { Upload, FileVideo, CheckCircle } from "lucide-react"
 import { uploadVideo, startTranscription } from "../api"
 
 const UploadForm = ({ onJobCreated, onError }) => {
@@ -23,64 +23,63 @@ const UploadForm = ({ onJobCreated, onError }) => {
     setProgress(0)
 
     try {
-      // 1. Upload
-      const uploadRes = await uploadVideo(file, (percent) => {
-        setProgress(percent)
-      })
-
-      const filePath = uploadRes.file_path
-
-      // 2. Transcribe
-      const transcribeRes = await startTranscription(filePath, language, mode)
-
+      const uploadRes = await uploadVideo(file, setProgress)
+      const transcribeRes = await startTranscription(
+        uploadRes.file_path,
+        language,
+        mode,
+      )
       onJobCreated(transcribeRes.job_id)
     } catch (err) {
-      console.error(err)
-      onError("Failed to start process. Check backend connection.")
+      onError("Failed to start transcription.", err)
     } finally {
       setUploading(false)
     }
   }
 
   return (
-    <div className="w-full max-w-md bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
-      <h2 className="text-2xl font-semibold mb-6 text-white flex items-center gap-2">
-        <FileVideo className="text-blue-500" /> New Transcription
+    <div className="w-full max-w-lg mx-auto rounded-2xl bg-[#f7efe5] border border-[#e6d5c3] shadow-xl p-6 sm:p-8">
+      {/* Header */}
+      <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-semibold text-[#4b2e1e] mb-6">
+        <FileVideo className="text-[#8b5a2b]" />
+        New Transcription
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* File Input */}
-        <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer relative">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* File Upload */}
+        <div className="relative rounded-xl border-2 border-dashed border-[#d6bfa7] bg-[#fbf6f0] p-8 text-center transition hover:border-[#8b5a2b]">
           <input
             type="file"
             accept="video/*"
             onChange={handleFileChange}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
           />
+
           {file ? (
-            <div className="flex flex-col items-center text-green-400">
-              <CheckCircle size={32} className="mb-2" />
-              <span className="text-sm truncate max-w-full px-2">
+            <div className="flex flex-col items-center text-[#4b7b52]">
+              <CheckCircle size={36} className="mb-2" />
+              <span className="text-sm font-medium truncate max-w-full px-2">
                 {file.name}
               </span>
             </div>
           ) : (
-            <div className="flex flex-col items-center text-gray-400">
-              <Upload size={32} className="mb-2" />
-              <span className="text-sm">Click or Drag video file here</span>
+            <div className="flex flex-col items-center text-[#8b6b4f]">
+              <Upload size={36} className="mb-2" />
+              <p className="text-sm font-medium">Click or drag video here</p>
+              <p className="text-xs opacity-70 mt-1">MP4, MKV, MOV supported</p>
             </div>
           )}
         </div>
 
-        {/* Language Selection */}
+        {/* Language */}
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">
+          <label className="block text-sm font-medium text-[#5c4033] mb-1">
             Language
           </label>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-[#d6bfa7] bg-[#fffaf5] px-4 py-2 text-[#4b2e1e] focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
           >
             <option value="en">English</option>
             <option value="hi">Hindi</option>
@@ -88,62 +87,56 @@ const UploadForm = ({ onJobCreated, onError }) => {
           </select>
         </div>
 
-        {/* Mode Selection */}
-        {/* Mode Selection */}
+        {/* Output Mode */}
         {language !== "en" && (
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">
+            <label className="block text-sm font-medium text-[#5c4033] mb-2">
               Output Mode
             </label>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-700 transition-colors">
-                <input
-                  type="radio"
-                  name="mode"
-                  value="native"
-                  checked={mode === "native"}
-                  onChange={(e) => setMode(e.target.value)}
-                  className="bg-gray-700 text-blue-500"
-                />
-                <span className="text-gray-300">
-                  <strong>Native Script</strong>
-                  <p className="text-xs text-gray-500">
-                    Original language (e.g., हिंदी)
-                  </p>
-                </span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-700 transition-colors">
-                <input
-                  type="radio"
-                  name="mode"
-                  value="romanized"
-                  checked={mode === "romanized"}
-                  onChange={(e) => setMode(e.target.value)}
-                  className="bg-gray-700 text-blue-500"
-                />
-                <span className="text-gray-300">
-                  <strong>Hinglish / Romanized</strong>
-                  <p className="text-xs text-gray-500">
-                    Original text in English letters
-                  </p>
-                </span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-700 transition-colors">
-                <input
-                  type="radio"
-                  name="mode"
-                  value="translate"
-                  checked={mode === "translate"}
-                  onChange={(e) => setMode(e.target.value)}
-                  className="bg-gray-700 text-blue-500"
-                />
-                <span className="text-gray-300">
-                  <strong>English Translation</strong>
-                  <p className="text-xs text-gray-500">
-                    Translate content to English
-                  </p>
-                </span>
-              </label>
+
+            <div className="grid gap-2">
+              {[
+                {
+                  value: "native",
+                  title: "Native Script",
+                  desc: "Original language text",
+                },
+                {
+                  value: "romanized",
+                  title: "Hinglish / Romanized",
+                  desc: "English letters pronunciation",
+                },
+                {
+                  value: "translate",
+                  title: "English Translation",
+                  desc: "Translated to English",
+                },
+              ].map((opt) => (
+                <label
+                  key={opt.value}
+                  className={`flex gap-3 rounded-xl border p-3 cursor-pointer transition
+                    ${
+                      mode === opt.value
+                        ? "border-[#8b5a2b] bg-[#f1e2d3]"
+                        : "border-[#e6d5c3] bg-[#fffaf5] hover:bg-[#f7efe5]"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name="mode"
+                    value={opt.value}
+                    checked={mode === opt.value}
+                    onChange={(e) => setMode(e.target.value)}
+                    className="mt-1 accent-[#8b5a2b]"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-[#4b2e1e]">
+                      {opt.title}
+                    </p>
+                    <p className="text-xs text-[#6b4a36]">{opt.desc}</p>
+                  </div>
+                </label>
+              ))}
             </div>
           </div>
         )}
@@ -152,11 +145,12 @@ const UploadForm = ({ onJobCreated, onError }) => {
         <button
           type="submit"
           disabled={!file || uploading}
-          className={`w-full py-3 rounded-lg font-semibold transition-all ${
-            !file || uploading
-              ? "bg-gray-600 cursor-not-allowed opacity-50"
-              : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg hover:shadow-blue-500/20"
-          }`}
+          className={`w-full rounded-xl py-3 text-sm font-semibold transition
+            ${
+              !file || uploading
+                ? "bg-[#cbb6a2] text-white/60 cursor-not-allowed"
+                : "bg-[#8b5a2b] text-white hover:bg-[#75461f] shadow-lg"
+            }`}
         >
           {uploading ? `Uploading ${progress}%` : "Start Transcription"}
         </button>

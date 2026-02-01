@@ -7,3 +7,5 @@ indic-transliteration
 aiofiles
 pydantic-settings
 pyinstaller
+openai
+python-dotenv

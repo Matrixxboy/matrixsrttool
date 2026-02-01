@@ -28,8 +28,6 @@ const StatusViewer = ({ jobId, onReset }) => {
         }
       } catch (err) {
         console.error("Polling error", err)
-        // Don't stop polling on transient network errors immediately in real app, but for now:
-        // setError("Connection lost");
       }
     }, 1000)
 
@@ -44,56 +42,66 @@ const StatusViewer = ({ jobId, onReset }) => {
       downloadTriggeredRef.current = true
     }
     if (status !== "completed" && downloadTriggeredRef.current) {
-      downloadTriggeredRef.current = false // Reset if status changes back (e.g. new job)
+      downloadTriggeredRef.current = false // Reset
     }
   }, [status, jobId])
 
   const getStatusColor = () => {
     switch (status) {
       case "completed":
-        return "text-green-500"
+        return "text-[#4b7b52]" // Muted Forest Green
       case "failed":
-        return "text-red-500"
+        return "text-[#c2410c]" // Burnt Sienna
       case "processing":
-        return "text-blue-400"
+        return "text-[#8b5a2b]" // Coffee Brown
       default:
-        return "text-gray-400"
+        return "text-[#6b4a36]" // Mocha
     }
   }
 
   return (
-    <div className="w-full max-w-md bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 animate-fade-in">
-      <div className="flex flex-col items-center text-center space-y-4">
-        {/* Icon based on status */}
-        <div className="transition-all duration-500">
+    <div className="w-full text-center space-y-6 animate-fade-in p-2 sm:p-4">
+      {/* Status Icon */}
+      <div className="flex justify-center mb-4 transition-all duration-500">
+        <div className="p-4 rounded-full bg-[#fbf6f0] border border-[#e6d5c3] shadow-sm">
           {status === "processing" || status === "pending" ? (
-            <Loader2 size={48} className="animate-spin text-blue-500" />
+            <Loader2 size={48} className="animate-spin text-[#8b5a2b]" />
           ) : status === "completed" ? (
-            <CheckCircle size={48} className="text-green-500" />
+            <CheckCircle size={48} className="text-[#4b7b52]" />
           ) : (
-            <AlertOctagon size={48} className="text-red-500" />
+            <AlertOctagon size={48} className="text-[#c2410c]" />
           )}
         </div>
+      </div>
 
-        <div>
-          <h3 className={`text-xl font-bold capitalize ${getStatusColor()}`}>
-            {status}
-          </h3>
-          <p className="text-gray-400 mt-1">{message}</p>
-        </div>
+      {/* Status Text */}
+      <div className="space-y-2">
+        <h3 className={`text-2xl font-bold capitalize ${getStatusColor()}`}>
+          {status}
+        </h3>
+        <p className="text-[#6b4a36] text-lg font-medium">{message}</p>
 
-        {/* Actions */}
+        {/* Progress Bar (Fake visual for processing) */}
+        {(status === "processing" || status === "pending") && (
+          <div className="w-full max-w-xs mx-auto h-2 bg-[#e6d5c3] rounded-full overflow-hidden mt-4">
+            <div className="h-full bg-[#8b5a2b] animate-pulse rounded-full w-2/3 mx-auto"></div>
+          </div>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-col gap-3 pt-4 sm:pt-6">
         {status === "completed" && (
           <button
             onClick={() => downloadSubtitles(jobId)}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-green-900/20"
+            className="w-full flex items-center justify-center gap-2 bg-[#4b7b52] hover:bg-[#3a6140] text-white px-6 py-3 rounded-xl font-semibold shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
           >
-            <Download size={20} /> Download SRT
+            <Download size={20} /> Download Subtitles
           </button>
         )}
 
         {status === "failed" && (
-          <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded-lg border border-red-900/50 w-full break-words">
+          <div className="text-red-800 text-sm bg-red-100 p-4 rounded-xl border border-red-200">
             {error || "Unknown Error"}
           </div>
         )}
@@ -101,9 +109,9 @@ const StatusViewer = ({ jobId, onReset }) => {
         {(status === "completed" || status === "failed") && (
           <button
             onClick={onReset}
-            className="mt-4 text-gray-500 hover:text-white flex items-center gap-1 text-sm pt-4 border-t border-gray-700 w-full justify-center"
+            className="w-full flex items-center justify-center gap-2 text-[#6b4a36] hover:text-[#4b2e1e] hover:bg-[#fffaf5] px-6 py-3 rounded-xl font-medium transition-colors border border-transparent hover:border-[#e6d5c3]"
           >
-            <RefreshCw size={14} /> Start New
+            <RefreshCw size={18} /> Start New Transcription
           </button>
         )}
       </div>
