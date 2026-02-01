@@ -15,5 +15,11 @@
         "message": "Done",
         "progress": 100,
         "srt_path": "outputs\\46b52008-b020-44d9-842f-e09d5276d4eb.srt"
+    },
+    "ef8f266f-563d-49e7-be97-dbfb3bb9ec1a": {
+        "status": "completed",
+        "message": "Done",
+        "progress": 100,
+        "srt_path": "outputs\\ef8f266f-563d-49e7-be97-dbfb3bb9ec1a.srt"
     }
 }
