@@ -19,7 +19,7 @@ def transcribe_audio(audio_path: str, language: str, mode: str):
     """
     Transcribes audio using Whisper.
     language: 'en', 'hi', 'gu', etc.
-    mode: 'native' (script) or 'english' (romanized/transliterated)
+    mode: 'native' (script), 'romanized' (transliterated to english chars), or 'translate' (english translation)
     """
     model = load_model()
     
@@ -28,9 +28,13 @@ def transcribe_audio(audio_path: str, language: str, mode: str):
     whisper_lang = language
     
     # Transcribe options
+    task = "transcribe"
+    if mode == "translate":
+        task = "translate"
+
     options = {
         "language": whisper_lang,
-        "task": "transcribe",
+        "task": task,
         "verbose": False
     }
 
@@ -45,18 +49,22 @@ def transcribe_audio(audio_path: str, language: str, mode: str):
         start = segment["start"]
         end = segment["end"]
         
-        if mode == "english" and language in ["hi", "gu"]:
+        # Only transliterate if mode is 'romanized' and we are not translating (translating implies English output already)
+        if mode == "romanized" and task == "transcribe" and language in ["hi", "gu"]:
             if language == "hi":
-                # Transliterate Hindi (Devanagari) to HK (Harvard-Kyoto) or ITRANS or similar, then to readable English
-                # Using ITANS for broader support or HK. 
-                # Actually, 'schemes.ITRANS' or 'schemes.IAST' might be better. 
-                # Simple romanization:
-                text = sanscript.transliterate(text, sanscript.DEVANAGARI, sanscript.ITRANS)
+                # Transliterate Hindi (Devanagari) to HK (Harvard-Kyoto) or ITRANS or similar
+                try:
+                    text = sanscript.transliterate(text, sanscript.DEVANAGARI, sanscript.ITRANS)
+                except Exception as e:
+                    print(f"Transliteration error: {e}")
             elif language == "gu":
-                text = sanscript.transliterate(text, sanscript.GUJARATI, sanscript.ITRANS)
+                try:
+                    text = sanscript.transliterate(text, sanscript.GUJARATI, sanscript.ITRANS)
+                except Exception as e:
+                    print(f"Transliteration error: {e}")
                 
             # Clean up potential artifacts of transliteration if needed
-            text = text.lower() # Optional: keep case? User example was 'mera naam...' (lowercase/mixed)
+            text = text.lower() 
 
         processed_segments.append({
             "start": start,
