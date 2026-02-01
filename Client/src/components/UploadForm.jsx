@@ -38,16 +38,16 @@ const UploadForm = ({ onJobCreated, onError }) => {
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto rounded-2xl bg-[#f7efe5] border border-[#e6d5c3] shadow-xl p-6 sm:p-8">
+    <div className="w-full max-w-lg mx-auto">
       {/* Header */}
-      <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-semibold text-[#4b2e1e] mb-6">
-        <FileVideo className="text-[#8b5a2b]" />
+      <h2 className="flex items-center gap-3 text-2xl font-semibold text-white mb-8 justify-center">
+        <FileVideo className="text-indigo-400" />
         New Transcription
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* File Upload */}
-        <div className="relative rounded-xl border-2 border-dashed border-[#d6bfa7] bg-[#fbf6f0] p-8 text-center transition hover:border-[#8b5a2b]">
+        <div className="relative rounded-2xl border-2 border-dashed border-white/10 bg-white/5 p-10 text-center transition hover:border-indigo-500/50 hover:bg-white/10 group">
           <input
             type="file"
             accept="video/*"
@@ -56,45 +56,56 @@ const UploadForm = ({ onJobCreated, onError }) => {
           />
 
           {file ? (
-            <div className="flex flex-col items-center text-[#4b7b52]">
-              <CheckCircle size={36} className="mb-2" />
-              <span className="text-sm font-medium truncate max-w-full px-2">
+            <div className="flex flex-col items-center text-emerald-400 animate-in fade-in zoom-in duration-300">
+              <CheckCircle size={42} className="mb-3 drop-shadow-lg" />
+              <span className="text-sm font-medium truncate max-w-full px-4 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                 {file.name}
               </span>
             </div>
           ) : (
-            <div className="flex flex-col items-center text-[#8b6b4f]">
-              <Upload size={36} className="mb-2" />
-              <p className="text-sm font-medium">Click or drag video here</p>
-              <p className="text-xs opacity-70 mt-1">MP4, MKV, MOV supported</p>
+            <div className="flex flex-col items-center text-gray-400 group-hover:text-indigo-400 transition-colors">
+              <Upload size={42} className="mb-3" />
+              <p className="text-base font-medium">Click or drag video here</p>
+              <p className="text-xs opacity-50 mt-2">MP4, MKV, MOV supported</p>
             </div>
           )}
         </div>
 
         {/* Language */}
         <div>
-          <label className="block text-sm font-medium text-[#5c4033] mb-1">
+          <label className="block text-sm font-medium text-gray-400 mb-2 pl-1">
             Language
           </label>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="w-full rounded-lg border border-[#d6bfa7] bg-[#fffaf5] px-4 py-2 text-[#4b2e1e] focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
-          >
-            <option value="en">English</option>
-            <option value="hi">Hindi</option>
-            <option value="gu">Gujarati</option>
-          </select>
+          <div className="relative">
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none"
+            >
+              <option value="en" className="bg-gray-900">
+                English
+              </option>
+              <option value="hi" className="bg-gray-900">
+                Hindi
+              </option>
+              <option value="gu" className="bg-gray-900">
+                Gujarati
+              </option>
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+              ▼
+            </div>
+          </div>
         </div>
 
         {/* Output Mode */}
         {language !== "en" && (
-          <div>
-            <label className="block text-sm font-medium text-[#5c4033] mb-2">
-              Output Mode
+          <div className="animate-in slide-in-from-top-4 duration-300">
+            <label className="block text-sm font-medium text-gray-400 mb-3 pl-1">
+              Refinement Mode
             </label>
 
-            <div className="grid gap-2">
+            <div className="grid gap-3">
               {[
                 {
                   value: "native",
@@ -114,11 +125,11 @@ const UploadForm = ({ onJobCreated, onError }) => {
               ].map((opt) => (
                 <label
                   key={opt.value}
-                  className={`flex gap-3 rounded-xl border p-3 cursor-pointer transition
+                  className={`flex gap-4 rounded-xl border p-4 cursor-pointer transition-all duration-200
                     ${
                       mode === opt.value
-                        ? "border-[#8b5a2b] bg-[#f1e2d3]"
-                        : "border-[#e6d5c3] bg-[#fffaf5] hover:bg-[#f7efe5]"
+                        ? "border-indigo-500 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
+                        : "border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10"
                     }`}
                 >
                   <input
@@ -127,13 +138,15 @@ const UploadForm = ({ onJobCreated, onError }) => {
                     value={opt.value}
                     checked={mode === opt.value}
                     onChange={(e) => setMode(e.target.value)}
-                    className="mt-1 accent-[#8b5a2b]"
+                    className="mt-1 accent-indigo-500 w-4 h-4"
                   />
                   <div>
-                    <p className="text-sm font-semibold text-[#4b2e1e]">
+                    <p
+                      className={`text-sm font-bold ${mode === opt.value ? "text-white" : "text-gray-300"}`}
+                    >
                       {opt.title}
                     </p>
-                    <p className="text-xs text-[#6b4a36]">{opt.desc}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
                   </div>
                 </label>
               ))}
@@ -145,14 +158,20 @@ const UploadForm = ({ onJobCreated, onError }) => {
         <button
           type="submit"
           disabled={!file || uploading}
-          className={`w-full rounded-xl py-3 text-sm font-semibold transition
+          className={`w-full rounded-xl py-4 text-base font-bold tracking-wide transition-all shadow-lg
             ${
               !file || uploading
-                ? "bg-[#cbb6a2] text-white/60 cursor-not-allowed"
-                : "bg-[#8b5a2b] text-white hover:bg-[#75461f] shadow-lg"
+                ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
+                : "bg-indigo-600 text-white hover:bg-indigo-500 hover:shadow-indigo-500/25 border border-indigo-500/50"
             }`}
         >
-          {uploading ? `Uploading ${progress}%` : "Start Transcription"}
+          {uploading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="animate-pulse">Uploading...</span> {progress}%
+            </span>
+          ) : (
+            "Start Transcription"
+          )}
         </button>
       </form>
     </div>

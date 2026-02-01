@@ -87,11 +87,12 @@ def refine_text_with_llm(text: str, mode: str) -> str:
         print(f"LLM Refinement Failed: {e}")
         return text
 
-def transcribe_audio(audio_path: str, language: str, mode: str):
+def transcribe_audio(audio_path: str, language: str, mode: str, progress_callback=None):
     """
     Transcribes audio using Whisper.
     language: 'en', 'hi', 'gu', etc.
     mode: 'native' (script), 'romanized' (transliterated to english chars), or 'translate' (english translation)
+    progress_callback: function(percentage)
     """
     model = load_model()
     
@@ -120,12 +121,17 @@ def transcribe_audio(audio_path: str, language: str, mode: str):
     if initial_prompt:
         options["initial_prompt"] = initial_prompt
 
+    # Notify start of whisper
+    if progress_callback:
+        progress_callback(10) # 10% done (audio loading / model loading assumption)
+
     result = model.transcribe(audio_path, **options)
     segments = result["segments"]
     
     processed_segments = []
+    total_segments = len(segments)
     
-    for segment in segments:
+    for i, segment in enumerate(segments):
         text = segment["text"]
         start = segment["start"]
         end = segment["end"]
@@ -133,12 +139,20 @@ def transcribe_audio(audio_path: str, language: str, mode: str):
         # Refine with LLM if mode matches
         if mode in ["romanized", "translate"]:
              text = refine_text_with_llm(text, mode)
-        # Fallback for Native mode: No LLM, just raw text (or legacy logic if needed, but Native usually works fine)
-
+        
+        # Fallback for Native mode / Just raw text
+        
         processed_segments.append({
             "start": start,
             "end": end,
             "text": text.strip()
         })
+
+        if progress_callback:
+            # Whisper done (say 50%), so we map remaining 50% to refinement
+            # Base progress 50%.
+            # Each segment adds to the remaining 50%.
+            current_progress = 50 + ((i + 1) / total_segments * 50)
+            progress_callback(current_progress)
 
     return processed_segments

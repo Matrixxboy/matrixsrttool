@@ -49,6 +49,7 @@ async def process_transcription(job_id: str, video_path: str, language: str, mod
     try:
         jobs[job_id]["status"] = "processing"
         jobs[job_id]["message"] = "Extracting audio..."
+        jobs[job_id]["progress"] = 5
         save_jobs()
         
         # 1. Extract Audio
@@ -56,12 +57,23 @@ async def process_transcription(job_id: str, video_path: str, language: str, mod
         extract_audio(video_path, audio_path)
         
         jobs[job_id]["message"] = "Transcribing..."
+        jobs[job_id]["progress"] = 15
         save_jobs()
         
+        # Callback to update progress from transcription service
+        def update_progress(data):
+            # Map transcription progress (0-100) to overall job progress (15-90)
+            # data can be a simple number or a dict if we want more info
+            if isinstance(data, (int, float)):
+                scaled_progress = 15 + (data * 0.75) 
+                jobs[job_id]["progress"] = int(scaled_progress)
+                save_jobs()
+
         # 2. Transcribe
-        segments = transcribe_audio(audio_path, language, mode)
+        segments = transcribe_audio(audio_path, language, mode, progress_callback=update_progress)
         
         jobs[job_id]["message"] = "Generating subtitles..."
+        jobs[job_id]["progress"] = 95
         save_jobs()
         
         # 3. Generate SRT
@@ -74,6 +86,7 @@ async def process_transcription(job_id: str, video_path: str, language: str, mod
             
         jobs[job_id]["status"] = "completed"
         jobs[job_id]["message"] = "Done"
+        jobs[job_id]["progress"] = 100
         jobs[job_id]["srt_path"] = srt_path
         save_jobs()
         
@@ -115,6 +128,7 @@ async def start_transcription(
     jobs[job_id] = {
         "status": "pending",
         "message": "Queued",
+        "progress": 0,
         "srt_path": None
     }
     save_jobs()

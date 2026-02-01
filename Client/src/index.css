@@ -1,22 +1,27 @@
-@tailwind base;
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Dark Theme Colors */
+  --bg-dark: #030712; /* Rich Black */
+  --bg-card: #111827; /* Gray 900 */
+  --accent-primary: #6366f1; /* Indigo 500 */
+  --accent-secondary: #a855f7; /* Purple 500 */
+  --text-primary: #f9fafb; /* Gray 50 */
+  --text-secondary: #9ca3af; /* Gray 400 */
 }
 
 body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  overflow-x: hidden;
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
   background-color: #f7efe5; /* Fallback cream */
   color: #4b2e1e;
 }

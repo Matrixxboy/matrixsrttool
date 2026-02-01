@@ -1,87 +1,40 @@
-import React, { useState } from "react"
-import UploadForm from "./components/UploadForm"
-import StatusViewer from "./components/StatusViewer"
-import { Bot } from "lucide-react"
+import React from "react"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import Navbar from "./components/ui/Navbar"
+import Home from "./pages/Home"
+import About from "./pages/About"
+import Credits from "./pages/Credits"
 
 function App() {
-  const [currentJobId, setCurrentJobId] = useState(null)
-  const [appError, setAppError] = useState(null)
-
-  const handleJobCreated = (jobId) => {
-    setAppError(null)
-    setCurrentJobId(jobId)
-  }
-
-  const handleReset = () => {
-    setCurrentJobId(null)
-    setAppError(null)
-  }
-
   return (
-    <div className="min-h-screen w-full relative overflow-hidden font-sans ">
-      {/* 🌈 Coffee pastel background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#f3e7d8] via-[#e7d3bd] to-[#d6bfa7]" />
-
-      {/* ✨ Ambient blur blobs */}
-      <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#8b5a2b]/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#c49a6c]/20 rounded-full blur-3xl" />
-
-      {/* 🧊 Glass overlay */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center px-4 py-10">
-        {/* Header */}
-        <div className="text-center mb-12 max-w-2xl">
-          <div
-            className="inline-flex items-center justify-center p-4 rounded-2xl mb-4
-                          bg-white/30 backdrop-blur-md border border-white/40 shadow-lg"
-          >
-            <Bot className="text-[#6b3f1d]" size={34} />
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#4b2e1e]">
-            AnyLanguage Caption
-          </h1>
-
-          <p className="mt-3 text-[#6b4a36] text-base sm:text-lg">
-            Offline Video Transcription & Transliteration Engine
-          </p>
+    <Router>
+      <div className="min-h-screen w-full relative bg-[#030712] text-white overflow-hidden">
+        {/* 🌌 Cosmic Background Effects */}
+        <div className="fixed inset-0 z-0">
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
         </div>
 
-        {/* Error */}
-        {appError && (
-          <div
-            className="mb-6 max-w-lg w-full rounded-xl
-                          bg-red-500/10 backdrop-blur border border-red-500/30
-                          px-4 py-3 text-red-800 text-sm"
-          >
-            {appError}
-          </div>
-        )}
+        {/* 🧊 Content Layer */}
+        <div className="relative z-10 flex flex-col items-center min-h-screen">
+          <Navbar />
 
-        {/* Main Card (glass) */}
-        <div className="w-full flex justify-center">
-          <div
-            className="w-full max-w-2xl rounded-3xl
-                       bg-white/40 backdrop-blur-xl
-                       border border-white/40
-                       shadow-2xl p-2"
-          >
-            {!currentJobId ? (
-              <UploadForm
-                onJobCreated={handleJobCreated}
-                onError={setAppError}
-              />
-            ) : (
-              <StatusViewer jobId={currentJobId} onReset={handleReset} />
-            )}
-          </div>
+          <main className="w-full max-w-7xl px-4 pt-32 pb-20 flex flex-col items-center flex-grow">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/credits" element={<Credits />} />
+            </Routes>
+          </main>
+
+          <footer className="w-full text-center py-6 text-gray-500 text-sm border-t border-white/5 backdrop-blur-sm">
+            <p>© {new Date().getFullYear()} MatrixSRT. Built for Creators.</p>
+          </footer>
         </div>
-
-        {/* Footer */}
-        <p className="mt-10 text-xs text-[#6b4a36]/70">
-          Runs fully offline · Your data stays on your machine
-        </p>
       </div>
-    </div>
+    </Router>
   )
 }
 

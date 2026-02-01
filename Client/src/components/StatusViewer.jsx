@@ -7,10 +7,13 @@ import {
   RefreshCw,
 } from "lucide-react"
 import { getJobStatus, downloadSubtitles } from "../api"
+import ProgressBar from "./ui/ProgressBar"
+import Button from "./ui/Button"
 
 const StatusViewer = ({ jobId, onReset }) => {
   const [status, setStatus] = useState("pending")
   const [message, setMessage] = useState("Initializing...")
+  const [progress, setProgress] = useState(0)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -21,10 +24,15 @@ const StatusViewer = ({ jobId, onReset }) => {
         const data = await getJobStatus(jobId)
         setStatus(data.status)
         setMessage(data.message)
+        // Ensure progress is a number
+        if (data.progress !== undefined) {
+          setProgress(data.progress)
+        }
 
         if (data.status === "completed" || data.status === "failed") {
           clearInterval(interval)
           if (data.status === "failed") setError(data.message)
+          if (data.status === "completed") setProgress(100)
         }
       } catch (err) {
         console.error("Polling error", err)
@@ -49,13 +57,13 @@ const StatusViewer = ({ jobId, onReset }) => {
   const getStatusColor = () => {
     switch (status) {
       case "completed":
-        return "text-[#4b7b52]" // Muted Forest Green
+        return "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]" // Neon Emerald
       case "failed":
-        return "text-[#c2410c]" // Burnt Sienna
+        return "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" // Neon Red
       case "processing":
-        return "text-[#8b5a2b]" // Coffee Brown
+        return "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" // Neon Amber
       default:
-        return "text-[#6b4a36]" // Mocha
+        return "text-gray-400"
     }
   }
 
@@ -63,56 +71,79 @@ const StatusViewer = ({ jobId, onReset }) => {
     <div className="w-full text-center space-y-6 animate-fade-in p-2 sm:p-4">
       {/* Status Icon */}
       <div className="flex justify-center mb-4 transition-all duration-500">
-        <div className="p-4 rounded-full bg-[#fbf6f0] border border-[#e6d5c3] shadow-sm">
-          {status === "processing" || status === "pending" ? (
-            <Loader2 size={48} className="animate-spin text-[#8b5a2b]" />
-          ) : status === "completed" ? (
-            <CheckCircle size={48} className="text-[#4b7b52]" />
-          ) : (
-            <AlertOctagon size={48} className="text-[#c2410c]" />
-          )}
+        <div className={`p-6 rounded-full glass-panel shadow-2xl relative`}>
+          {/* Glow Effect */}
+          <div
+            className={`absolute inset-0 rounded-full blur-xl opacity-20 ${
+              status === "completed"
+                ? "bg-emerald-500"
+                : status === "failed"
+                  ? "bg-red-500"
+                  : status === "processing"
+                    ? "bg-amber-500"
+                    : "bg-gray-500"
+            }`}
+          ></div>
+
+          <div className="relative z-10">
+            {status === "processing" || status === "pending" ? (
+              <Loader2 size={48} className="animate-spin text-amber-400" />
+            ) : status === "completed" ? (
+              <CheckCircle size={48} className="text-emerald-400" />
+            ) : (
+              <AlertOctagon size={48} className="text-red-500" />
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Status Text */}
-      <div className="space-y-2">
-        <h3 className={`text-2xl font-bold capitalize ${getStatusColor()}`}>
-          {status}
-        </h3>
-        <p className="text-[#6b4a36] text-lg font-medium">{message}</p>
+      {/* Status Text & Progress */}
+      <div className="space-y-4">
+        <div>
+          <h3
+            className={`text-3xl font-bold capitalize tracking-tight ${getStatusColor()}`}
+          >
+            {status}
+          </h3>
+          <p className="text-gray-400 text-lg font-medium mt-2">{message}</p>
+        </div>
 
-        {/* Progress Bar (Fake visual for processing) */}
-        {(status === "processing" || status === "pending") && (
-          <div className="w-full max-w-xs mx-auto h-2 bg-[#e6d5c3] rounded-full overflow-hidden mt-4">
-            <div className="h-full bg-[#8b5a2b] animate-pulse rounded-full w-2/3 mx-auto"></div>
+        {/* Real Progress Bar */}
+        {(status === "processing" ||
+          status === "pending" ||
+          status === "completed") && (
+          <div className="w-full max-w-sm mx-auto mt-6">
+            <div className="flex justify-between text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">
+              <span>Progress</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <ProgressBar progress={progress} />
           </div>
         )}
       </div>
 
       {/* Actions */}
-      <div className="flex flex-col gap-3 pt-4 sm:pt-6">
+      <div className="flex flex-col gap-3 pt-6 sm:pt-8">
         {status === "completed" && (
-          <button
+          <Button
             onClick={() => downloadSubtitles(jobId)}
-            className="w-full flex items-center justify-center gap-2 bg-[#4b7b52] hover:bg-[#3a6140] text-white px-6 py-3 rounded-xl font-semibold shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
+            className="w-full"
+            variant="primary"
           >
             <Download size={20} /> Download Subtitles
-          </button>
+          </Button>
         )}
 
         {status === "failed" && (
-          <div className="text-red-800 text-sm bg-red-100 p-4 rounded-xl border border-red-200">
+          <div className="text-red-400 text-sm bg-red-900/20 p-4 rounded-xl border border-red-500/20 backdrop-blur-sm">
             {error || "Unknown Error"}
           </div>
         )}
 
         {(status === "completed" || status === "failed") && (
-          <button
-            onClick={onReset}
-            className="w-full flex items-center justify-center gap-2 text-[#6b4a36] hover:text-[#4b2e1e] hover:bg-[#fffaf5] px-6 py-3 rounded-xl font-medium transition-colors border border-transparent hover:border-[#e6d5c3]"
-          >
+          <Button onClick={onReset} variant="secondary" className="w-full">
             <RefreshCw size={18} /> Start New Transcription
-          </button>
+          </Button>
         )}
       </div>
     </div>

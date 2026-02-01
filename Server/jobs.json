@@ -3,5 +3,17 @@
         "status": "completed",
         "message": "Done",
         "srt_path": "outputs\\a46a9fc3-4a3c-4e68-93f0-a5ddf85418ef.srt"
+    },
+    "8f8f2744-b371-4249-a481-6bace102cdf9": {
+        "status": "completed",
+        "message": "Done",
+        "progress": 100,
+        "srt_path": "outputs\\8f8f2744-b371-4249-a481-6bace102cdf9.srt"
+    },
+    "46b52008-b020-44d9-842f-e09d5276d4eb": {
+        "status": "completed",
+        "message": "Done",
+        "progress": 100,
+        "srt_path": "outputs\\46b52008-b020-44d9-842f-e09d5276d4eb.srt"
     }
 }
