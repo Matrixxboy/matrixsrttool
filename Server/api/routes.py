@@ -42,7 +42,7 @@ def save_jobs():
 # Load jobs on startup
 jobs: Dict[str, Dict] = load_jobs()
 
-async def process_transcription(job_id: str, video_path: str, language: str, mode: str, words_per_line: int = None):
+async def process_transcription(job_id: str, video_path: str, language: str, mode: str, words_per_line: int = None, original_filename: str = None):
     """
     Background task to handle the full transcription pipeline.
     """
@@ -78,7 +78,14 @@ async def process_transcription(job_id: str, video_path: str, language: str, mod
         
         # 3. Generate SRT
         srt_content = generate_srt(segments)
-        srt_filename = f"{job_id}.srt"
+        
+        # Determine SRT filename
+        if original_filename:
+             base_name = os.path.splitext(original_filename)[0]
+             srt_filename = f"{base_name}.srt"
+        else:
+             srt_filename = f"{job_id}.srt"
+             
         srt_path = os.path.join(OUTPUT_DIR, srt_filename)
         
         with open(srt_path, "w", encoding="utf-8") as f:
@@ -88,6 +95,7 @@ async def process_transcription(job_id: str, video_path: str, language: str, mod
         jobs[job_id]["message"] = "Done"
         jobs[job_id]["progress"] = 100
         jobs[job_id]["srt_path"] = srt_path
+        jobs[job_id]["download_filename"] = srt_filename # Store the friendly name for download
         save_jobs()
         
         # Cleanup audio/video temp files (optional - keeping for debug for now)
@@ -112,7 +120,11 @@ async def upload_video(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         
-    return {"file_id": file_id, "file_path": file_path}
+    return {
+        "file_id": file_id, 
+        "file_path": file_path,
+        "original_filename": file.filename
+    }
 
 @router.post("/transcribe")
 async def start_transcription(
@@ -120,7 +132,8 @@ async def start_transcription(
     file_path: str = Form(...),
     language: str = Form(...),
     mode: str = Form(...),
-    words_per_line: int = Form(None)
+    words_per_line: int = Form(None),
+    original_filename: str = Form(None)
 ):
     """
     Starts the transcription process in the background.
@@ -134,7 +147,7 @@ async def start_transcription(
     }
     save_jobs()
     
-    background_tasks.add_task(process_transcription, job_id, file_path, language, mode, words_per_line)
+    background_tasks.add_task(process_transcription, job_id, file_path, language, mode, words_per_line, original_filename)
     
     return {"job_id": job_id}
 
@@ -163,8 +176,11 @@ async def download_subtitle(job_id: str):
     if not os.path.exists(jobs[job_id]["srt_path"]):
          raise HTTPException(status_code=404, detail="SRT file missing from disk")
 
+    # Use the friendly filename if available, otherwise default
+    download_name = jobs[job_id].get("download_filename", "subtitles.srt")
+
     return FileResponse(
         jobs[job_id]["srt_path"], 
         media_type="application/x-subrip", 
-        filename="subtitles.srt"
+        filename=download_name
     )

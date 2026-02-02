@@ -21,10 +21,6 @@ const Navbar = () => {
           <Info size={18} />
           <span className="hidden sm:inline">About</span>
         </NavLink>
-        <NavLink to="/credits" className={linkClass}>
-          <User size={18} />
-          <span className="hidden sm:inline">Credits</span>
-        </NavLink>
       </div>
     </nav>
   )

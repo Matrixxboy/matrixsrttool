@@ -53,7 +53,7 @@ const Home = () => {
           transition={{ delay: 0.2 }}
           className="mt-4 text-lg sm:text-xl text-gray-400 flex items-center justify-center gap-2 max-w-2xl mx-auto leading-relaxed"
         >
-          Offline Video Transcription & Transliteration Engine{" "}
+          Privacy-First Video Transcription & Transliteration Engine{" "}
           <Sparkles size={16} className="text-amber-300" />
         </motion.p>
       </div>

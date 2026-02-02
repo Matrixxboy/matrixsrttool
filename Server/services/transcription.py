@@ -43,25 +43,54 @@ def refine_text_with_llm(text: str, mode: str) -> str:
     user_prompt = text
 
     if mode == "romanized":
-        system_prompt = (
-            "You are a Hinglish (Hindi-English code-switching) expert. "
-            "The user will provide a raw transcription that may have phonetic errors or incorrect spellings. "
-            "Your goal is to convert it into natural, readable Romanized Hinglish. "
-            "RULES:\n"
-            "1. DO NOT translate Hindi words to English. Keep the original Hindi sentence structure.\n"
-            "2. For English words used in the speech (like 'time', 'computer', 'subscribe'), MUST use their standard English spelling.\n"
-            "3. For Hindi words, use natural Romanization (e.g., write 'kya' instead of 'kyA', 'hum' instead of 'ham').\n"
-            "4. Fix any phonetic gibberish forced by the transcriber into meaningful Hinglish.\n"
-            "\n"
-            "EXAMPLES:\n"
-            "Input: 'Mera naam raj hai aur aaj ham vidiyo edit karenge'\n"
-            "Output: 'Mera naam Raj hai aur aaj hum video edit karenge.'\n"
-            "\n"
-            "Input: 'Iska taiming galat hai'\n"
-            "Output: 'Iska timing galat hai.'\n"
-            "\n"
-            "Output ONLY the refined text. No introductory or explanation text."
-        )
+       system_prompt = (
+        "You are a multilingual code-switching normalization expert. "
+        "The user will provide a raw speech transcription that may contain phonetic errors, "
+        "incorrect spellings, mixed scripts, or ASR (speech-to-text) artifacts.\n\n"
+
+        "YOUR TASK:\n"
+        "Convert the input into clean, natural, and readable Romanized text "
+        "while preserving the original spoken language(s) and sentence structure.\n\n"
+
+        "LANGUAGE RULES:\n"
+        "1. DO NOT translate between languages.\n"
+        "   - Preserve every word in the language it was spoken.\n"
+        "   - Only normalize spelling and readability.\n\n"
+
+        "2. English words MUST be written in correct standard English spelling.\n"
+        "   - Example: time, computer, subscribe, video, upload\n\n"
+
+        "3. Non-English words MUST be written in natural Romanization.\n"
+        "   - Hindi → Hinglish (kya, hum, hai, karenge)\n"
+        "   - Gujarati → Roman Gujarati (shu, tame, chhe)\n"
+        "   - Hinglish / Hingujarati → keep natural code-switching\n\n"
+
+        "4. Fix phonetic or broken ASR output into meaningful words.\n"
+        "   - Example: 'taiming' → 'timing'\n"
+        "   - Example: 'vidiyo' → 'video'\n\n"
+
+        "5. Maintain original sentence meaning, tone, and order.\n"
+        "   - Do NOT rephrase or rewrite stylistically.\n\n"
+
+        "FORMATTING RULES:\n"
+        "6. Use proper capitalization for names and sentence starts.\n"
+        "7. Add basic punctuation where clearly required.\n"
+        "8. Output ONLY the refined text. No explanations.\n\n"
+
+        "EXAMPLES:\n"
+        "Input: 'Mera naam raj hai aur aaj ham vidiyo edit karenge'\n"
+        "Output: 'Mera naam Raj hai aur aaj hum video edit karenge.'\n\n"
+
+        "Input: 'Iska taiming galat hai'\n"
+        "Output: 'Iska timing galat hai.'\n\n"
+
+        "Input: 'shu tame aaj office jasho ke nahi'\n"
+        "Output: 'Shu tame aaj office jasho ke nahi?'\n\n"
+
+        "Input: 'Aaj meeting ka time change ho gaya hai'\n"
+        "Output: 'Aaj meeting ka time change ho gaya hai.'"
+    )
+
     elif mode == "translate":
         system_prompt = (
             "You are an expert translator. Translate the following text into natural, fluent English. "

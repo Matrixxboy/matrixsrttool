@@ -30,6 +30,7 @@ const UploadForm = ({ onJobCreated, onError }) => {
         language,
         mode,
         wordsPerLine,
+        uploadRes.original_filename,
       )
       onJobCreated(transcribeRes.job_id)
     } catch (err) {

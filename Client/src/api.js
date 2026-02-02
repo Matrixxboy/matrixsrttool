@@ -26,12 +26,14 @@ export const startTranscription = async (
   language,
   mode,
   wordsPerLine,
+  originalFilename,
 ) => {
   const formData = new FormData()
   formData.append("file_path", filePath)
   formData.append("language", language)
   formData.append("mode", mode)
   if (wordsPerLine) formData.append("words_per_line", wordsPerLine)
+  if (originalFilename) formData.append("original_filename", originalFilename)
 
   const response = await api.post("/transcribe", formData)
   return response.data
