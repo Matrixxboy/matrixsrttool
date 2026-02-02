@@ -29,12 +29,13 @@ const Home = () => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          className="inline-flex items-center justify-center p-5 rounded-2xl mb-6
+          className="inline-flex items-center justify-center p-3 rounded-full mb-4
                                   bg-white/5 backdrop-blur-md border border-white/10 ring-1 ring-white/20 shadow-2xl"
         >
-          <Bot
-            className="text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-            size={42}
+          <img
+            src="/logo.png"
+            alt="MatrixSRT Logo"
+            className="w-32 h-32 object-contain"
           />
         </motion.div>
 
