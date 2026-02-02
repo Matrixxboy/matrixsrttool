@@ -8,38 +8,7 @@ const About = () => {
       <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 mb-12 text-center tracking-tight">
         About MatrixSRT
       </h1>
-      <Card className="border-indigo-500/20">
-        <div className="text-center py-4">
-          <h2
-            className="
-          text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-purple-300 mb-6
-          hover:scale-110 transition-transform duration-300"
-          >
-            <a href="https://twomportal.vercel.app/" target="_blank">
-              The Matrix World
-            </a>
-          </h2>
-          <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed mb-8">
-            <strong>The World Of Matrix</strong> focuses on building privacy-first,
-            offline-capable AI systems. <strong>MatrixSRT</strong> is our flagship video
-            transcription and transliteration engine, optimized for speed and
-            local processing.
-          </p>
-
-          <div className="inline-flex items-center justify-center gap-4 bg-white/5 rounded-full px-6 py-2 border border-white/10">
-            <div className="flex flex-col text-left">
-              <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">
-                Lead Developer
-              </span>
-              <span className="text-indigo-400 font-bold">
-                <a href="https://utsav-lankapati.onrender.com" target="_blank">
-                  Utsav Lankapati
-                </a>
-              </span>
-            </div>
-          </div>
-        </div>
-      </Card>
+      
       {/* Features Grid */}
       <div className="grid gap-6 md:grid-cols-2 mb-16">
         <Card className="hover:shadow-indigo-500/10 transition-shadow group">
@@ -92,6 +61,7 @@ const About = () => {
             Pro, and all major video players.
           </p>
         </Card>
+        
       </div>
 
       {/* How It Works */}
@@ -140,6 +110,49 @@ const About = () => {
           </div>
         ))}
       </div>
+        <Card className="border-indigo-500/20">
+          <div className="text-center py-4">
+            <h2
+              className="
+              text-2xl md:text-3xl font-bold text-transparent bg-clip-text
+              bg-gradient-to-r from-indigo-300 to-purple-300 mb-6
+              hover:scale-110 transition-transform duration-300"
+            >
+              <a
+                href="https://twomportal.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                The World Of Matrix
+              </a>
+            </h2>
+
+            <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed mb-8">
+              <strong>The World Of Matrix</strong> is an independent AI research and
+              product studio focused on building privacy-first, offline-capable
+              intelligence systems. Our flagship solution, <strong>MatrixSRT</strong>,
+              delivers high-accuracy video transcription and transliteration with an
+              emphasis on speed, data ownership, and fully local processing.
+            </p>
+
+            <div className="inline-flex items-center justify-center gap-4 bg-white/5 rounded-full px-6 py-2 border border-white/10">
+              <div className="flex flex-col text-left">
+                <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">
+                  Founder & Lead Engineer
+                </span>
+                <span className="text-indigo-400 font-bold">
+                  <a
+                    href="https://utsav-lankapati.onrender.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Utsav Lankapati
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
 
       {/* About Company */}
     </div>
