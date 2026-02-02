@@ -87,11 +87,12 @@ def refine_text_with_llm(text: str, mode: str) -> str:
         print(f"LLM Refinement Failed: {e}")
         return text
 
-def transcribe_audio(audio_path: str, language: str, mode: str, progress_callback=None):
+def transcribe_audio(audio_path: str, language: str, mode: str, words_per_line: int = None, progress_callback=None):
     """
     Transcribes audio using Whisper.
     language: 'en', 'hi', 'gu', etc.
     mode: 'native' (script), 'romanized' (transliterated to english chars), or 'translate' (english translation)
+    words_per_line: Optional[int] - Max words per subtitle line
     progress_callback: function(percentage)
     """
     model = load_model()
@@ -155,4 +156,70 @@ def transcribe_audio(audio_path: str, language: str, mode: str, progress_callbac
             current_progress = 50 + ((i + 1) / total_segments * 50)
             progress_callback(current_progress)
 
+    # Resegmentation (if requested)
+    if words_per_line and words_per_line > 0:
+        print(f"Resegmenting to {words_per_line} words per line...")
+        processed_segments = resegment_text(processed_segments, words_per_line)
+    
     return processed_segments
+
+def resegment_text(segments: List[Dict], max_words: int) -> List[Dict]:
+    """
+    Resegments the text into chunks of roughly 'max_words' length.
+    Uses linear interpolation for timestamps since we don't have word-level timestamps.
+    """
+    # 1. Flatten to words with interpolated timestamps
+    all_words = []
+    
+    for seg in segments:
+        text = seg["text"].strip()
+        if not text:
+            continue
+            
+        start = seg["start"]
+        end = seg["end"]
+        duration = end - start
+        
+        words = text.split()
+        num_words = len(words)
+        
+        if num_words == 0:
+            continue
+            
+        # Time per word (naive distribution)
+        time_per_word = duration / num_words
+        
+        for i, word in enumerate(words):
+            word_start = start + (i * time_per_word)
+            word_end = start + ((i + 1) * time_per_word)
+            all_words.append({
+                "word": word,
+                "start": word_start,
+                "end": word_end
+            })
+            
+    # 2. Regroup into new segments
+    new_segments = []
+    current_segment_words = []
+    current_start = None
+    
+    for i, w in enumerate(all_words):
+        if not current_segment_words:
+            current_start = w["start"]
+            
+        current_segment_words.append(w["word"])
+        
+        # Check if we reached max words or end of list
+        if len(current_segment_words) >= max_words or i == len(all_words) - 1:
+            segment_text = " ".join(current_segment_words)
+            segment_end = w["end"]
+            
+            new_segments.append({
+                "start": current_start,
+                "end": segment_end,
+                "text": segment_text
+            })
+            
+            current_segment_words = []
+            
+    return new_segments

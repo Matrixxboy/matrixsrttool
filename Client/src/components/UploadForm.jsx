@@ -6,6 +6,7 @@ const UploadForm = ({ onJobCreated, onError }) => {
   const [file, setFile] = useState(null)
   const [language, setLanguage] = useState("en")
   const [mode, setMode] = useState("native")
+  const [wordsPerLine, setWordsPerLine] = useState("")
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
 
@@ -28,6 +29,7 @@ const UploadForm = ({ onJobCreated, onError }) => {
         uploadRes.file_path,
         language,
         mode,
+        wordsPerLine,
       )
       onJobCreated(transcribeRes.job_id)
     } catch (err) {
@@ -153,6 +155,22 @@ const UploadForm = ({ onJobCreated, onError }) => {
             </div>
           </div>
         )}
+
+        {/* Resegmentation / Words Per Line */}
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-2 pl-1">
+            Words Per Line <span className="text-gray-600">(Optional)</span>
+          </label>
+          <input
+            type="number"
+            min="1"
+            max="50"
+            placeholder="Auto"
+            value={wordsPerLine}
+            onChange={(e) => setWordsPerLine(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+          />
+        </div>
 
         {/* Submit */}
         <button

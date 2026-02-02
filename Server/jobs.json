@@ -21,5 +21,23 @@
         "message": "Done",
         "progress": 100,
         "srt_path": "outputs\\ef8f266f-563d-49e7-be97-dbfb3bb9ec1a.srt"
+    },
+    "7a6fcfc1-6453-4723-a8cd-bf95e11c5d77": {
+        "status": "completed",
+        "message": "Done",
+        "progress": 100,
+        "srt_path": "outputs\\7a6fcfc1-6453-4723-a8cd-bf95e11c5d77.srt"
+    },
+    "25cc277d-cb5e-4974-9f02-99481f77201f": {
+        "status": "processing",
+        "message": "Transcribing...",
+        "progress": 22,
+        "srt_path": null
+    },
+    "055f2be3-f30e-47c7-9a01-af87130c3878": {
+        "status": "completed",
+        "message": "Done",
+        "progress": 100,
+        "srt_path": "outputs\\055f2be3-f30e-47c7-9a01-af87130c3878.srt"
     }
 }

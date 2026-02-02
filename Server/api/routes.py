@@ -42,7 +42,7 @@ def save_jobs():
 # Load jobs on startup
 jobs: Dict[str, Dict] = load_jobs()
 
-async def process_transcription(job_id: str, video_path: str, language: str, mode: str):
+async def process_transcription(job_id: str, video_path: str, language: str, mode: str, words_per_line: int = None):
     """
     Background task to handle the full transcription pipeline.
     """
@@ -70,7 +70,7 @@ async def process_transcription(job_id: str, video_path: str, language: str, mod
                 save_jobs()
 
         # 2. Transcribe
-        segments = transcribe_audio(audio_path, language, mode, progress_callback=update_progress)
+        segments = transcribe_audio(audio_path, language, mode, words_per_line=words_per_line, progress_callback=update_progress)
         
         jobs[job_id]["message"] = "Generating subtitles..."
         jobs[job_id]["progress"] = 95
@@ -119,7 +119,8 @@ async def start_transcription(
     background_tasks: BackgroundTasks,
     file_path: str = Form(...),
     language: str = Form(...),
-    mode: str = Form(...)
+    mode: str = Form(...),
+    words_per_line: int = Form(None)
 ):
     """
     Starts the transcription process in the background.
@@ -133,7 +134,7 @@ async def start_transcription(
     }
     save_jobs()
     
-    background_tasks.add_task(process_transcription, job_id, file_path, language, mode)
+    background_tasks.add_task(process_transcription, job_id, file_path, language, mode, words_per_line)
     
     return {"job_id": job_id}
 
